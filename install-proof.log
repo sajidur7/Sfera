@@ -1,0 +1,49 @@
+Sfera UI install proof — 2026-11-15 15:11 UTC — node v24.18.1, npm 11.16.0
+
+=== 1. New app from the one-file installer (empty folder) ===
+$ ls
+sfera-install.mjs
+$ node sfera-install.mjs init my-app
+✓ Created my-app with 23 Sfera UI files
+
+Next:
+  cd my-app
+  npm install
+  npm run dev
+$ npm install
+added 76 packages in 2s
+exit 0
+$ npm run build
+> tsc --noEmit && vite build
+vite v8.3.8 building client environment for production...
+✓ 2108 modules transformed.
+dist/index.html                   0.68 kB │ gzip:  0.37 kB
+dist/assets/index-Bi56Cb3s.css   55.24 kB │ gzip: 12.49 kB
+dist/assets/index-ATnuxZAN.js   277.27 kB │ gzip: 86.74 kB
+✓ built in 1.17s
+exit code: 0
+
+=== 2. Add to an existing plain Vite + React app (no StyleX before) ===
+$ cat package.json | grep -c stylex
+0
+$ npm install
+added 23 packages in 1s
+$ node sfera-install.mjs add --install
+✓ Copied 23 files into src/sfera
+added 4 packages, and audited 28 packages in 760ms
+added 50 packages, and audited 78 packages in 680ms
+✓ Added .browserslistrc (modern targets, so colour mixing is kept as-is)
+Add StyleX to vite.config.ts:
+Load the fonts in index.html:
+Then wrap your app:
+$ (apply the printed vite.config + SferaProvider steps)
+$ grep -E 'stylex|lucide' package.json
+    "@stylexjs/stylex": "0.19.2",
+    "lucide-react": "1.73.0",
+    "@stylexjs/unplugin": "0.19.2",
+$ npm run build
+dist/index.html                   0.36 kB │ gzip:  0.26 kB
+dist/assets/index-Drkc0Wu9.css   55.11 kB │ gzip: 12.47 kB
+dist/assets/index-ald2_LKQ.js   235.53 kB │ gzip: 75.02 kB
+✓ built in 1.19s
+exit code: 0

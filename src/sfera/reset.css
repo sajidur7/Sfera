@@ -1,0 +1,13 @@
+/* Reset lives in its own layer, declared first, so StyleX layers always win. */
+@layer reset {
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  /* Browsers give code elements their own monospace; use the system's Geist Mono from the parent instead. */
+  code, pre, kbd, samp { font-family: inherit; font-size: inherit; }
+  img, svg { display: block; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+  }
+}
