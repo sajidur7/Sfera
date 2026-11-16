@@ -323,7 +323,9 @@ const payoutDays = [
   { d: new Date(2026, 10, 20), amount: 12480, orders: 431, status: 'Scheduled' as const },
   { d: new Date(2026, 10, 27), amount: 9860, orders: 342, status: 'Estimated' as const },
   { d: new Date(2026, 11, 4), amount: 14200, orders: 498, status: 'Estimated' as const },
+  { d: new Date(2026, 11, 11), amount: 15640, orders: 552, status: 'Estimated' as const },
 ];
+const payoutTotal = payoutDays.reduce((a, p) => a + p.amount, 0);
 export function ShopPayoutsScreen() {
   const toast = O.useToast();
   const [day, setDay] = useState<Date | null>(payoutDays[0].d);
@@ -340,13 +342,16 @@ export function ShopPayoutsScreen() {
                 <O.Calendar value={day} onChange={setDay} />
                 <div style={{ flex: '1 1 170px', minWidth: 170, display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <O.VStack gap={1}>
-                    <O.Text size="sm" tone="muted">{day ? day.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Pick a day'}</O.Text>
+                    <O.HStack gap={2} align="center">
+                      <O.StatusDot tone={picked ? (picked.status === 'Scheduled' ? 'success' : 'neutral') : 'neutral'} />
+                      <O.Text size="sm" tone="muted">
+                        {day ? day.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Pick a day'}
+                        {picked ? ` · ${picked.status}` : ''}
+                      </O.Text>
+                    </O.HStack>
                     {picked ? (
                       <>
-                        <O.HStack gap={2} align="center">
-                          <span style={{ fontSize: 24, fontWeight: 500, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{money(picked.amount, 2)}</span>
-                          <O.StatusChip size="sm" tone={picked.status === 'Scheduled' ? 'success' : 'neutral'}>{picked.status}</O.StatusChip>
-                        </O.HStack>
+                        <span style={{ fontSize: 24, fontWeight: 500, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', overflowWrap: 'anywhere' }}>{money(picked.amount, 2)}</span>
                         <O.Text size="sm" tone="muted">{picked.orders} orders · arrives by 17:00</O.Text>
                       </>
                     ) : (
@@ -362,6 +367,10 @@ export function ShopPayoutsScreen() {
                         <O.Text size="sm" numeric tone={p.status === 'Scheduled' ? undefined : 'muted'}>{money(p.amount)}</O.Text>
                       </O.HStack>
                     ))}
+                    <O.HStack gap={2} justify="between">
+                      <O.Text size="sm" weight="medium">Next 4 weeks</O.Text>
+                      <O.Text size="sm" weight="medium" numeric>{money(payoutTotal)}</O.Text>
+                    </O.HStack>
                   </O.VStack>
                   <div style={{ marginTop: 'auto' }}>
                     <O.HStack gap={2} justify="between" align="center">

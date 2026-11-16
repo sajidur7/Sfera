@@ -41,6 +41,11 @@ const btn = stylex.create({
     touchAction: 'manipulation',
     textDecoration: 'none',
     position: 'relative',
+    // pressed buttons sink 1px; no gradients: depth comes from flat edge light and shadow
+    transform: { default: null, ':active:not(:disabled)': 'translateY(1px)' },
+    transitionProperty: 'transform, background-color, box-shadow, border-color',
+    transitionDuration: motion.fast,
+    transitionTimingFunction: motion.ease,
   },
   // Sizes: 36 / 32 / 24 with radius 10 / 8 / 6.
   xs: { height: { default: 24, '@media (pointer: coarse)': 32 }, paddingInline: 8, fontSize: font.xs, fontWeight: 600, borderRadius: 6 },
@@ -50,20 +55,36 @@ const btn = stylex.create({
   label: { display: 'inline-flex', alignItems: 'center', flexShrink: 0 },
   labelMd: { paddingInline: 4 },
   labelSm: { paddingInline: 2 },
+  // Raised: a light top edge, a darker bottom edge and border, and a soft tinted drop shadow.
   primary: {
     backgroundColor: { default: accent.base, ':hover:not(:disabled)': accent.hover, ':active:not(:disabled)': accent.hover },
+    borderColor: { default: `color-mix(in oklab, ${accent.base} 78%, black)`, ':disabled': 'transparent' },
     color: { default: accent.onAccent, ':disabled': `color-mix(in oklab, ${accent.onAccent} 55%, ${accent.base})` },
-    boxShadow: { default: '0 1px 2px rgba(18,18,20,0.10)', ':disabled': 'none' },
+    boxShadow: {
+      default: `inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -2px 0 rgba(0,0,0,0.12), 0 1px 2px rgba(18,18,20,0.14), 0 3px 8px -3px color-mix(in oklab, ${accent.base} 60%, transparent)`,
+      ':active:not(:disabled)': 'inset 0 1px 2px rgba(0,0,0,0.18)',
+      ':disabled': 'none',
+    },
   },
   secondary: {
     backgroundColor: { default: colors.surface, ':hover:not(:disabled)': colors.hover, ':active:not(:disabled)': colors.pressed, ':disabled': colors.well },
     borderColor: { default: colors.border, ':hover:not(:disabled)': colors.borderStrong },
     color: { default: colors.text, ':disabled': colors.textSubtle },
-    boxShadow: { default: '0 1px 2px rgba(18,18,20,0.06)', ':disabled': 'none' },
+    boxShadow: {
+      default: 'inset 0 -2px 0 rgba(18,18,20,0.05), 0 1px 2px rgba(18,18,20,0.08), 0 2px 6px -3px rgba(18,18,20,0.10)',
+      ':active:not(:disabled)': 'inset 0 1px 2px rgba(18,18,20,0.10)',
+      ':disabled': 'none',
+    },
   },
+  // Accent-tinted, flat: for the second action next to a primary.
   soft: {
-    backgroundColor: { default: colors.well, ':hover:not(:disabled)': colors.pressed, ':active:not(:disabled)': colors.pressed },
-    color: { default: colors.text, ':disabled': colors.textSubtle },
+    backgroundColor: {
+      default: `color-mix(in oklab, ${accent.base} 13%, ${colors.surface})`,
+      ':hover:not(:disabled)': `color-mix(in oklab, ${accent.base} 19%, ${colors.surface})`,
+      ':active:not(:disabled)': `color-mix(in oklab, ${accent.base} 24%, ${colors.surface})`,
+      ':disabled': colors.well,
+    },
+    color: { default: `color-mix(in oklab, ${accent.base} 82%, ${colors.text})`, ':disabled': colors.textSubtle },
   },
   ghost: {
     backgroundColor: { default: 'transparent', ':hover:not(:disabled)': colors.hover, ':active:not(:disabled)': colors.pressed },
@@ -71,8 +92,13 @@ const btn = stylex.create({
   },
   danger: {
     backgroundColor: { default: colors.danger, ':hover:not(:disabled)': `color-mix(in oklab, ${colors.danger} 88%, black)` },
+    borderColor: { default: `color-mix(in oklab, ${colors.danger} 78%, black)`, ':disabled': 'transparent' },
     color: { default: '#FFFFFF', ':disabled': `color-mix(in oklab, #FFFFFF 55%, ${colors.danger})` },
-    boxShadow: { default: '0 1px 2px rgba(18,18,20,0.10)', ':disabled': 'none' },
+    boxShadow: {
+      default: `inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -2px 0 rgba(0,0,0,0.12), 0 1px 2px rgba(18,18,20,0.14), 0 3px 8px -3px color-mix(in oklab, ${colors.danger} 60%, transparent)`,
+      ':active:not(:disabled)': 'inset 0 1px 2px rgba(0,0,0,0.18)',
+      ':disabled': 'none',
+    },
   },
   full: { width: '100%' },
   spinner: {
