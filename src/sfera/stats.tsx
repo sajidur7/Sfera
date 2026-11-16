@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex';
-import { cloneElement, isValidElement, useId, useMemo, useState, type ReactElement, type ReactNode } from 'react';
+import { cloneElement, isValidElement, useId, useLayoutEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from 'react';
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, GripVertical, Plus, X } from 'lucide-react';
 import { accent, colors, font, motion } from './tokens.stylex';
 import { fx } from './shared';
@@ -387,7 +387,9 @@ const tc = stylex.create({
   up: { color: `color-mix(in oklab, ${colors.success} 80%, ${colors.text})` },
   down: { color: `color-mix(in oklab, ${colors.danger} 80%, ${colors.text})` },
   when: { color: colors.textSubtle, marginLeft: 6 },
-  svg: { width: '100%', display: 'block', overflow: 'visible', marginBlock: '14px 10px' },
+  // the plot grows with the card, so a stretched card never leaves a gap under the line
+  plot: { flexGrow: 1, minHeight: 120, marginBlock: '14px 10px', position: 'relative' },
+  svg: { position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', overflow: 'visible' },
 });
 /** Smooth path through the points (Catmull-Rom → cubic Bézier). */
 function smooth(pts: [number, number][]) {
@@ -411,11 +413,18 @@ export function TrendCard({ ranges, label = 'Balance', prefix = '$', period = 't
   const first = vals[0];
   const diff = last - first;
   const pctv = (diff / first) * 100;
-  const W = 320;
-  const H = 120;
+  const plotRef = useRef<HTMLDivElement>(null);
+  const [{ W, H }, setSize] = useState({ W: 320, H: 120 });
+  useLayoutEffect(() => {
+    const el = plotRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setSize({ W: Math.max(120, el.clientWidth), H: Math.max(80, el.clientHeight) }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const min = Math.min(...vals);
   const max = Math.max(...vals);
-  const pts = useMemo(() => vals.map((v, i) => [(i / (vals.length - 1)) * (W - 10) + 2, H - 8 - ((v - min) / (max - min || 1)) * (H - 20)] as [number, number]), [vals, min, max]);
+  const pts = useMemo(() => vals.map((v, i) => [(i / (vals.length - 1)) * (W - 10) + 2, H - 8 - ((v - min) / (max - min || 1)) * (H - 20)] as [number, number]), [vals, min, max, W, H]);
   const [whole, cents] = last.toFixed(2).split('.');
   const color = diff >= 0 ? colors.success : colors.danger;
   return (
@@ -429,10 +438,12 @@ export function TrendCard({ ranges, label = 'Balance', prefix = '$', period = 't
         {diff >= 0 ? '+' : '−'}
         {Math.abs(diff).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} · {Math.abs(pctv).toFixed(1)}%<span {...stylex.props(tc.when)}>{period}</span>
       </span>
-      <svg viewBox={`0 0 ${W} ${H}`} {...stylex.props(tc.svg)} role="img" aria-label={`${label} trend over ${r}`}>
-        <path d={smooth(pts)} fill="none" style={{ stroke: color }} strokeWidth={2.5} strokeLinecap="round" />
-        <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r={6} style={{ fill: colors.well, stroke: color }} strokeWidth={2.5} />
-      </svg>
+      <div ref={plotRef} {...stylex.props(tc.plot)}>
+        <svg viewBox={`0 0 ${W} ${H}`} {...stylex.props(tc.svg)} role="img" aria-label={`${label} trend over ${r}`}>
+          <path d={smooth(pts)} fill="none" style={{ stroke: color }} strokeWidth={2.5} strokeLinecap="round" />
+          <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r={6} style={{ fill: colors.well, stroke: color }} strokeWidth={2.5} />
+        </svg>
+      </div>
       <SegmentedControl fullWidth size="sm" value={r} onChange={setR} label="Range" options={keys.map((k) => ({ value: k, label: k }))} />
     </section>
   );

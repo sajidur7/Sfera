@@ -53,7 +53,7 @@ export function ShopHomeScreen() {
                 <O.List boxed={false}>
                   <O.ListItem leading={<Truck size={16} />} title="3 failed deliveries" subtitle="Reship or refund" trailing={<O.Badge tone="danger">3</O.Badge>} onClick={() => open('commerce-orders')} />
                   <O.ListItem leading={<Package size={16} />} title="Celadon bowl is out of stock" subtitle="233 sold this month" trailing={<O.Badge tone="warning">0 left</O.Badge>} onClick={() => open('shop-inventory')} />
-                  <O.ListItem last leading={<Wallet size={16} />} title="Payout of $12,480 on Thursday" subtitle="To account ending 4021" onClick={() => open('shop-payouts')} />
+                  <O.ListItem last leading={<Wallet size={16} />} title="Payout of $12,480 on Friday" subtitle="To account ending 4021" onClick={() => open('shop-payouts')} />
                 </O.List>
               </O.Card>
             </O.Well>
@@ -319,15 +319,58 @@ export function ShopInventoryScreen() {
 }
 
 // ───────── Payouts
+const payoutDays = [
+  { d: new Date(2026, 10, 20), amount: 12480, orders: 431, status: 'Scheduled' as const },
+  { d: new Date(2026, 10, 27), amount: 9860, orders: 342, status: 'Estimated' as const },
+  { d: new Date(2026, 11, 4), amount: 14200, orders: 498, status: 'Estimated' as const },
+];
 export function ShopPayoutsScreen() {
+  const toast = O.useToast();
+  const [day, setDay] = useState<Date | null>(payoutDays[0].d);
+  const picked = day && payoutDays.find((p) => p.d.toDateString() === day.toDateString());
+  const nextAfter = day && payoutDays.find((p) => p.d > day);
   return (
     <Screen product={kiln} active="payouts" topbar={<O.Text weight="medium">Payouts</O.Text>}>
-      <Page title="Payouts" subtitle="Every Thursday to account ending 4021" max={1080}>
-        <Cols template="minmax(0, 1fr) minmax(0, 1.4fr)" stretch>
+      <Page title="Payouts" subtitle="Every Friday to account ending 4021" max={1080}>
+        <Cols template="repeat(auto-fit, minmax(min(100%, 500px), 1fr))" stretch>
           <O.TrendCard label="Available" ranges={{ '4W': [9800, 10400, 11200, 12480], '3M': [7200, 8100, 8800, 9600, 9100, 10200, 11000, 11800, 12480], '1Y': [3000, 4200, 5100, 6600, 7100, 8800, 9200, 10100, 11000, 12480] }} period="next payout" />
           <O.Well title="Upcoming" fill>
             <O.Card grow>
-              <O.Calendar value={new Date(2026, 10, 20)} />
+              <O.HStack gap={4} wrap align="stretch" justify="center">
+                <O.Calendar value={day} onChange={setDay} />
+                <div style={{ flex: '1 1 170px', minWidth: 170, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <O.VStack gap={1}>
+                    <O.Text size="sm" tone="muted">{day ? day.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Pick a day'}</O.Text>
+                    {picked ? (
+                      <>
+                        <O.HStack gap={2} align="center">
+                          <span style={{ fontSize: 24, fontWeight: 500, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{money(picked.amount, 2)}</span>
+                          <O.StatusChip size="sm" tone={picked.status === 'Scheduled' ? 'success' : 'neutral'}>{picked.status}</O.StatusChip>
+                        </O.HStack>
+                        <O.Text size="sm" tone="muted">{picked.orders} orders · arrives by 17:00</O.Text>
+                      </>
+                    ) : (
+                      <O.Text size="sm">No payout this day.{nextAfter ? ` Next one is ${nextAfter.d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}.` : ''}</O.Text>
+                    )}
+                  </O.VStack>
+                  <O.Divider />
+                  <O.VStack gap={1}>
+                    <O.Text size="xs" tone="muted">Next payouts · every Friday</O.Text>
+                    {payoutDays.map((p) => (
+                      <O.HStack key={p.d.toISOString()} gap={2} justify="between">
+                        <O.Text size="sm">{p.d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</O.Text>
+                        <O.Text size="sm" numeric tone={p.status === 'Scheduled' ? undefined : 'muted'}>{money(p.amount)}</O.Text>
+                      </O.HStack>
+                    ))}
+                  </O.VStack>
+                  <div style={{ marginTop: 'auto' }}>
+                    <O.HStack gap={2} justify="between" align="center">
+                      <O.Text size="sm" tone="muted">To account ···· 4021</O.Text>
+                      <O.Button size="xs" variant="ghost" onClick={() => toast({ title: 'Payout account settings are coming soon' })}>Change</O.Button>
+                    </O.HStack>
+                  </div>
+                </div>
+              </O.HStack>
             </O.Card>
           </O.Well>
         </Cols>
